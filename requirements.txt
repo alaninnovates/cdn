@@ -1,0 +1,7 @@
+fastapi==0.79.0
+deta
+nanoid
+python-multipart
+jinja2
+requests
+itsdangerous

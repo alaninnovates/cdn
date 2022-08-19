@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Dashboard</title>
+		<script
+			src="/static/js/dashboard.js"
+			type="text/javascript"
+			defer
+		></script>
+	</head>
+	<body>
+		Hello, {{ user.username }}<br />Your api key is:
+		<p id="api_key">{{ user.api_key }}</p>
+		<button onclick="regen_api_key()">Regenerate API key</button>
+		<br />
+		<a href="{{ url_for('logout') }}">
+			<button>Logout</button>
+		</a>
+	</body>
+</html>
