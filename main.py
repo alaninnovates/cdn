@@ -10,7 +10,7 @@ from deta import Deta
 from nanoid import generate
 
 from AuthorizationDependencies import AuthorizeApiKeyDependency, AuthorizeDependency
-from ValidateFileMiddleware import ValidateFileMiddleware
+from ValidateFileDependency import ValidateFileDependency
 from github import get_token, get_user
 
 deta = Deta(os.getenv("DETA_PROJECT_KEY"))
@@ -21,11 +21,11 @@ drive = deta.Drive("uploads")
 
 auth_apikey_dependency = AuthorizeApiKeyDependency(users_db)
 auth_dependency = AuthorizeDependency()
+validate_file_dependency = ValidateFileDependency()
 
 pages = Jinja2Templates(directory="pages")
 app = FastAPI(
     middleware=[
-        Middleware(ValidateFileMiddleware),
         Middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET")),
     ]
 )
@@ -81,19 +81,23 @@ async def regen_api_key(request: Request, user: dict = Depends(auth_dependency))
     return {"api_key": api_key}
 
 
-@app.post("/api/file/upload/")
-async def upload_file(file: UploadFile, user: dict = Depends(auth_apikey_dependency)):
-    ext = Path(file.filename).suffix
+@app.post("/api/file/upload")
+async def upload_file(
+    user: dict = Depends(auth_apikey_dependency),
+    file: dict = Depends(validate_file_dependency),
+):
     file_id = generate(size=10)
+    ext = file.get("file_extention")
+    content_type = file.get("content_type")
     file_name = drive.put(
         f"{file_id}{ext}",
-        file.file,
-        content_type=file.content_type,
+        file.get("file_contents"),
+        content_type=content_type,
     )
     file_data = {
         "key": file_id,
         "name": file_name,
-        "type": file.content_type,
+        "type": content_type,
         "user_id": user.get("user_id"),
     }
     db.insert(file_data)
